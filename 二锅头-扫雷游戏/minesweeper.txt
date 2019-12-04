@@ -1,0 +1,148 @@
+#include <stdio.h>
+#include <windows.h>
+#include <stdlib.h>//随机数函数在这里
+
+
+#define LENGTH 12
+#define WIDTH 12
+
+//定义显示数组和实际数组
+char ui[LENGTH][WIDTH] = {0};
+char mine[LENGTH][WIDTH] = {0};
+
+void printFunc(char array[12][12]);
+char search(int a,int b);
+int countFunc(char array[12][12]);
+void changeFunc(char array[12][12],int a,int b);
+void initiFunc();
+void loadFunc(int length);
+
+int main(void){
+    int index;
+    printf("-------您好，欢迎来到有趣的扫雷游戏！-------\n----------小哥哥小姐姐快来玩呀！-------\n----------进入游戏请按1，退出游戏请按2。-------\n");
+    scanf("%d",&index);
+    if(index ==2)
+     return 0;
+    //布雷
+    initiFunc();//初始化两个数组
+    int NumOfBomb;//定义雷的个数
+    printf("请输入您想布置的雷的个数。\n");
+    scanf("%d",&NumOfBomb);
+    loadFunc(NumOfBomb);
+    
+    printFunc(ui);//打印棋盘
+     //开始扫雷
+    while(1){
+    
+       if(NumOfBomb == countFunc(ui)){
+           printf("恭喜您扫雷完成！\n");
+           break;
+       }
+   printf("请输入想扫雷的坐标，先输行再输列哦！\n");
+    int a,b;
+   scanf("%d %d",&a,&b);
+   if(a<=0||a>10||b<=0||b>10){
+   printf("您的输入有误请重新输入！");
+   continue;
+   }
+   if(mine[a][b]=='1'){
+     
+       printf("对不起，您踩到雷啦！\n");
+       printFunc(mine);//把设计者的图完整打印出来。
+       break;
+   }
+   if(mine[a][b]=='0'){
+       printf("----------恭喜！这儿没有雷哦！------------\n");
+       changeFunc(ui,a,b);
+       printFunc(ui);
+    }
+   }
+  
+    system("pause");
+    return 0;
+}
+
+
+void initiFunc(){
+      //初始化棋盘
+   for(int i = 0;i<LENGTH;i++){
+       for(int j = 0;j<WIDTH;j++){
+           ui[i][j] = '*';
+           mine[i][j] ='0';
+       }
+   }
+}
+void loadFunc(int length){//生成雷阵
+  for(int i = 1;i<=length;i++){
+       int m =rand()%10 +1;
+       int n =rand()%10 +1;
+       mine[m][n] ='1';
+    }
+}
+char search(int a,int b){//搜索周围雷的个数
+    char counter = '0';
+    
+    if(mine[a-1][b-1]=='1')  
+    (int)counter++; 
+    if(mine[a-1][b]=='1')    
+    (int)counter++; 
+    if(mine[a-1][b+1]=='1')  
+    (int)counter++; 
+    if(mine[a][b-1]=='1')   
+    (int)counter++; 
+    if(mine[a][b+1]=='1')    
+    (int)counter++; 
+    if(mine[a+1][b-1]=='1')  
+    (int)counter++; 
+    if(mine[a+1][b]=='1')  
+    (int)counter++; 
+    if(mine[a+1][b+1]=='1')  
+    (int)counter++; 
+    
+    return counter;
+}
+void printFunc(char array[12][12] ){//打印雷阵
+     for(int i = 0;i<=10;i++){
+        if(i ==0)
+        printf("%d  ",i);
+        else
+        printf("%d ",i);
+   }
+   printf("\n");
+   for(int i = 1;i<=10;i++){
+       if(i!= 10)
+       printf("%d  ",i);
+       else
+       printf("%d ",i);       
+       for(int j = 1;j<=10;j++){
+           printf("%c ",array[i][j]);
+        }
+       printf("\n");
+   }
+   
+
+}
+
+int countFunc(char array[12][12]){//统计未翻牌的*的数量
+    int star = 0;
+   for(int i = 1;i<=10;i++){
+       for(int j = 1 ;j<=10;j++){
+           if(array[i][j] == '*'){
+              star++;
+           }
+       }
+   }
+   return star;
+}
+void changeFunc(char array[12][12],int a,int b){//周围的*的翻牌
+     ui[a][b] = search(a, b);
+       if(ui[a][b] =='0'){
+           for(int i =a-1;i<=a+1;i++){
+               for(int j =b-1;j<=b+1;j++){
+                   if(mine[i][j]=='0'){
+                       ui[i][j] =search(i,j);
+                   }
+               }
+           }
+       }
+}
