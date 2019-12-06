@@ -1,0 +1,1599 @@
+//main.c
+#include<iostream>
+#include<graphics.h>//使用EasyX插件
+#include<time.h>
+#include<Windows.h>
+using namespace std;
+extern void createindex();
+int hardValue = -1; //难度数值0-3
+int numValue[50][50];//格子显示
+int numCheck[50][50];//检测是否被打开 bool型 1=未被打开 0=被打开
+int flagCheck[50][50];
+int main() {
+	srand(time(NULL));
+	createindex();
+
+}
+
+
+
+
+//function.c
+#include<stdio.h>
+#include<graphics.h>
+#include<time.h>
+#include<Windows.h>
+#include<Mmsystem.h>
+#pragma comment(lib,"winmm.lib")
+
+using namespace std;
+int nowx;//全局变量 检测上次点击的x坐标
+int nowy;//全局变量 检测上次点击的y坐标
+extern int hardValue;
+extern int numValue[50][50];
+extern int numCheck[50][50];
+extern int flagCheck[50][50];
+void setNumValueEmpty(int(*a)[50]);
+void randomsetNumValue(int(*a)[50], int sup1, int sup2, int num);
+void hardchoose(int hardValue);
+void createhelp();
+void hard0();
+void hard1();
+void hard2();
+void hard3();
+void onClick(int hardValue);
+void checkempty(int nowx, int nowy, int sup1, int sup2);
+//下面是生成难度选择界面
+void createindex() {
+	MOUSEMSG m;
+	PlaySound(TEXT(".\\music/bgm.wav"), NULL, SND_FILENAME | SND_ASYNC);
+	initgraph(480, 640);
+	setbkcolor(WHITE);
+	cleardevice();
+	settextcolor(BLACK);
+	outtextxy(100, 50, "扫雷");
+	outtextxy(100, 80, "如果看到此提示");
+	outtextxy(100, 110, "请将img与music文件夹拷贝到");
+	outtextxy(100, 140, "与主程序相同的目录");
+	IMAGE img1;
+	loadimage(&img1, _T(".\\img/index.jpg"));
+	IMAGE img2;
+	loadimage(&img2, _T(".\\img/onclickhelp.jpg"));
+	IMAGE img3;
+	loadimage(&img3, _T(".\\img/onclickeasy.jpg"));
+	IMAGE img4;
+	loadimage(&img4, _T(".\\img/onclickmedium.jpg"));
+	IMAGE img5;
+	loadimage(&img5, _T(".\\img/onclickhard.jpg"));
+	IMAGE img6;
+	loadimage(&img6, _T(".\\img/onclickhell.jpg"));
+	putimage(0, 0, &img1);
+	int i = -1, flag = 1;
+	while (flag) {
+		m = GetMouseMsg();
+		for (i = 0; i <= 3; i++) {
+
+			if (m.mkLButton && m.y > 160 + 110 * i && m.y < 250 + 110 * i) {
+				hardValue = i;
+				flag = 0;
+				break;
+			}
+
+
+		}
+		if (m.mkLButton && m.y < 100 && m.x > 360) {
+			createhelp();
+			Sleep(1000);
+
+		}
+
+	}
+	switch (i)
+	{
+	case 0:
+		putimage(0, 0, &img3);
+		Sleep(100);
+		hardchoose(hardValue);
+		break;
+	case 1:
+		putimage(0, 0, &img4);
+		Sleep(100);
+		hardchoose(hardValue);
+		break;
+	case 2:
+		putimage(0, 0, &img5);
+		Sleep(100);
+		hardchoose(hardValue);
+		break;
+	case 3:
+		putimage(0, 0, &img6);
+		Sleep(100);
+		hardchoose(hardValue);
+		break;
+	default:
+		break;
+	}
+
+
+
+}
+
+//生成帮助界面
+void createhelp() {
+	IMAGE return1;
+	loadimage(&return1, _T(".\\img/return.png"));
+	int flaghelp = 1;
+	MOUSEMSG m;
+	FlushMouseMsgBuffer();
+	setbkcolor(WHITE);
+	cleardevice();
+	settextcolor(BLACK);
+	outtextxy(100, 50, "扫雷-游戏规则");
+	outtextxy(100, 70, "清新好玩（花里胡哨(划掉)）的小游戏扫雷来了");
+	outtextxy(100, 100, "如遇界面显示不全，请打开设置减小应用缩放比例 ");
+	outtextxy(100, 130, "左键单击打开格子");
+	outtextxy(100, 160, "右键单击标记地雷");
+	outtextxy(100, 190, "再次右键点击就可以取消标记辣");
+	outtextxy(100, 220, "全部雷扫完，即可获得胜利");
+	outtextxy(100, 250, "打开声音享受更完整游戏体验哦");
+	outtextxy(100, 310, "可能做的还不完整，我们还在努力");
+	outtextxy(100, 340, "程序设计：冯国豪 qq1298345865");
+	outtextxy(100, 370, "美工:陈益超");
+	outtextxy(100, 400, "小提示：easy中有6个雷");
+	outtextxy(100, 430, "middle中有10个雷");
+	outtextxy(100, 460, "hard中有40个雷");
+	outtextxy(100, 490, "hell中有99个雷");
+	outtextxy(100, 540, "更多信息请访问");
+	outtextxy(100, 570, "www.fguohao.top");
+	putimage(20, 20, &return1);
+	m = GetMouseMsg();
+	while (flaghelp) {
+		m = GetMouseMsg();
+		if (m.mkLButton && m.x < 160 && m.y < 250) {
+			flaghelp = 0;
+			createindex();
+		}
+	}
+
+
+	Sleep(10000);
+}
+
+
+//控制难度选择，被createindex调用，指向hard0-3
+void hardchoose(int hardValue) {
+	switch (hardValue)
+	{
+	case 0:
+		hard0();
+		break;
+	case 1:
+		hard1();
+		break;
+	case 2:
+		hard2();
+		break;
+	case 3:
+		hard3();
+		break;
+	default:
+		printf(" ");
+	}
+
+}
+
+//下面是生成游戏界面
+
+ //easy界面
+void hard0() {
+	time_t start_t, end_t;
+	double diff_t;
+	MOUSEMSG m;
+	IMAGE return2;
+	loadimage(&return2, _T(".\\img/return2.jpg"));
+	IMAGE pichard0;
+	loadimage(&pichard0, _T(".\\img/hard0.jpg"));
+	IMAGE return1;
+	loadimage(&return1, _T(".\\img/return.png"));
+	IMAGE imgsmile1;
+	loadimage(&imgsmile1, _T(".\\img/smile1.jpg"));
+	IMAGE imgsmile2;
+	loadimage(&imgsmile2, _T(".\\img/smile2.jpg"));
+	IMAGE block1;
+	loadimage(&block1, _T(".\\img/block1.jpg"));
+	bool isend = 1;
+	int count9 = 0;
+	int countelse = 0;
+	initgraph(480, 640);
+
+	setbkmode(TRANSPARENT);
+	setbkcolor(WHITE);
+	settextstyle(36, 0, _T("微软雅黑"));
+
+	cleardevice();
+	settextcolor(BLACK);
+	putimage(0, 0, &pichard0);
+	outtextxy(100, 50, "扫雷1");
+	putimage(215, 45, &imgsmile1);
+	putimage(20, 20, &return1);
+	setNumValueEmpty(numValue);
+	randomsetNumValue(numValue, 6, 4, 6);
+	time(&start_t);
+	for (int i = 0; i <= 4; i++) {
+		for (int j = 0; j <= 6; j++) {
+			setfillcolor(BLACK);
+			putimage(142 + i * 40, 142 + j * 40, &block1);
+			
+		}
+	}
+
+
+	while (isend) {
+		onClick(hardValue);
+
+		count9 = 0;
+		countelse = 0;
+		for (int i = 0; i <= 4; i++) {
+			for (int j = 0; j <= 6; j++) {
+				if (numValue[j][i] == 9 && numCheck[j][i] == 0) {
+					count9++;
+				}
+			}
+		}
+		if (count9 != 0) {
+			isend = 0;
+			putimage(215, 45, &imgsmile2);
+			putimage(275, 45, &return2);
+			PlaySound(NULL, NULL, SND_FILENAME);
+			PlaySound(TEXT(".\\music/baozha.wav"), NULL, SND_FILENAME | SND_ASYNC);
+			while (1) {
+				m = GetMouseMsg();
+				if (m.mkLButton && m.x < 60 && m.y < 60) {
+					createindex();
+				}
+				if (m.mkLButton && m.x > 215 && m.y < 95) {
+					PlaySound(TEXT(".\\music/bgm.wav"), NULL, SND_FILENAME | SND_ASYNC);
+					hard0();
+
+				}
+
+			}
+			break;
+		}
+		for (int i = 0; i <= 4; i++) {
+			for (int j = 0; j <= 6; j++) {
+				if (numValue[j][i] >= 0 && numValue[j][i] < 9 && numCheck[j][i] == 0) {
+					countelse++;
+				}
+			}
+		}
+		if (countelse >= 29) {
+			IMAGE lei1;
+			loadimage(&lei1, _T(".\\img/lei1.jpg"));
+			char s[5];
+			setfillcolor(WHITE);
+			isend = 0;
+			PlaySound(NULL, NULL, SND_FILENAME);
+			PlaySound(TEXT(".\\music/victory.wav"), NULL, SND_FILENAME | SND_ASYNC);
+			for (int i = 0; i <= 6; i++) {
+				for (int j = 0; j <= 4; j++) {
+
+					if (numValue[i][j] == 1 || numValue[i][j] == 4 || numValue[i][j] == 7) { settextcolor(BLUE); }
+					if (numValue[i][j] == 2 || numValue[i][j] == 5) { settextcolor(GREEN); }
+					if (numValue[i][j] == 3 || numValue[i][j] == 8) { settextcolor(RED); }
+
+					if (numValue[i][j] != 0 && numValue[i][j] != 9)
+					{
+						sprintf_s(s, "%d", numValue[i][j]);
+						outtextxy(152 + j * 40, 144 + i * 40, s);
+					}
+					if (numValue[i][j] == 9) {
+						putimage(142 + j * 40, 142 + i * 40, &lei1);
+					}
+
+				}
+			}
+
+			putimage(215, 215, &imgsmile1);
+			putimage(275, 45, &return2);
+			time(&end_t);
+			diff_t = difftime(end_t, start_t);
+			settextcolor(RED);
+			outtextxy(130, 440, "恭喜您完成游戏,用时:");
+			sprintf_s(s, "%d", int(diff_t));
+
+			outtextxy(200, 470, s);
+			outtextxy(240, 470, "S");
+			while (1) {
+				m = GetMouseMsg();
+				if (m.mkLButton && m.x < 60 && m.y < 60) {
+					createindex();
+				}
+				if (m.mkLButton && m.x > 215 && m.y < 95) {
+					PlaySound(TEXT(".\\music/bgm.wav"), NULL, SND_FILENAME | SND_ASYNC);
+					hard0();
+				}
+
+			}
+
+		}
+	}
+
+	Sleep(10000);
+
+}
+//medium界面
+void hard1() {
+	char s[5];
+	time_t start_t, end_t;
+	double diff_t;
+	MOUSEMSG m;
+	IMAGE pichard0;
+	loadimage(&pichard0, _T(".\\img/hard0.jpg"));
+	IMAGE return1;
+	loadimage(&return1, _T(".\\img/return.png"));
+	IMAGE return2;
+	loadimage(&return2, _T(".\\img/return2.png"));
+	IMAGE imgsmile1;
+	loadimage(&imgsmile1, _T(".\\img/smile1.jpg"));
+	IMAGE imgsmile2;
+	loadimage(&imgsmile2, _T(".\\img/smile2.jpg"));
+	IMAGE block1;
+	loadimage(&block1, _T(".\\img/block1.jpg"));
+	bool isend = 1;
+	int count9 = 0;
+	int countelse = 0;
+	initgraph(480, 640);
+	setbkcolor(WHITE);
+	setbkmode(TRANSPARENT);
+	setbkcolor(WHITE);
+	settextstyle(36, 0, _T("微软雅黑"));
+	cleardevice();
+	settextcolor(BLACK);
+	outtextxy(100, 50, "扫雷2");
+	putimage(0, 0, &pichard0);
+	putimage(215, 45, &imgsmile1);
+	putimage(20, 20, &return1);
+	setNumValueEmpty(numValue);
+	randomsetNumValue(numValue, 8, 8, 10);
+	time(&start_t);
+	for (int i = 0; i <= 8; i++) {
+		for (int j = 0; j <= 8; j++) {
+			setfillcolor(BLACK);
+			putimage(62 + i * 40, 142 + j * 40, &block1);
+
+		}
+	}
+	while (isend) {
+		onClick(hardValue);
+
+		count9 = 0;
+		countelse = 0;
+		for (int i = 0; i <= 8; i++) {
+			for (int j = 0; j <= 8; j++) {
+				if (numValue[j][i] == 9 && numCheck[j][i] == 0) {
+					count9++;
+				}
+			}
+		}
+		if (count9 != 0) {
+			isend = 0;
+			putimage(215, 45, &imgsmile2);
+			putimage(275, 45, &return2);
+			PlaySound(NULL, NULL, SND_FILENAME);
+			PlaySound(TEXT(".\\music/baozha.wav"), NULL, SND_FILENAME | SND_ASYNC);
+			while (1) {
+				m = GetMouseMsg();
+				if (m.mkLButton && m.x < 60 && m.y < 60) {
+					createindex();
+				}
+				if (m.mkLButton && m.x > 215 && m.y < 95) {
+					PlaySound(TEXT(".\\music/bgm.wav"), NULL, SND_FILENAME | SND_ASYNC);
+					hard1();
+				}
+
+			}
+
+		}
+		for (int i = 0; i <= 8; i++) {
+			for (int j = 0; j <= 8; j++) {
+				if (numValue[j][i] >= 0 && numValue[j][i] < 9 && numCheck[j][i] == 0) {
+					countelse++;
+				}
+			}
+		}
+		if (countelse >= 71) {
+			IMAGE lei1;
+			loadimage(&lei1, _T(".\\img/lei1.jpg"));
+			char s[5];
+			setfillcolor(WHITE);
+			isend = 0;
+			PlaySound(NULL, NULL, SND_FILENAME);
+			PlaySound(TEXT(".\\music/victory.wav"), NULL, SND_FILENAME | SND_ASYNC);
+			for (int j = 0; j <= 8; j++) {
+				for (int i = 0; i <= 8; i++) {
+
+					if (numValue[i][j] == 1 || numValue[i][j] == 4 || numValue[i][j] == 7) { settextcolor(BLUE); }
+					if (numValue[i][j] == 2 || numValue[i][j] == 5) { settextcolor(GREEN); }
+					if (numValue[i][j] == 3 || numValue[i][j] == 8) { settextcolor(RED); }
+
+					if (numValue[i][j] != 0 && numValue[i][j] != 9)
+					{
+						sprintf_s(s, "%d", numValue[i][j]);
+						outtextxy(72 + j * 40, 142 + i * 40, s);
+					}
+					if (numValue[i][j] == 9) {
+						putimage(62 + j * 40, 142 + i * 40, &lei1);
+					}
+
+				}
+
+			}
+
+		}
+	}
+	putimage(215, 215, &imgsmile1);
+	putimage(275, 45, &return2);
+	time(&end_t);
+	diff_t = difftime(end_t, start_t);
+	settextcolor(RED);
+	outtextxy(130, 460, "恭喜您完成游戏,用时:");
+	sprintf_s(s, "%d", int(diff_t));
+
+	outtextxy(200, 490, s);
+	outtextxy(240, 490, "S");
+	while (1) {
+		m = GetMouseMsg();
+		if (m.mkLButton && m.x < 60 && m.y < 60) {
+			createindex();
+		}
+		if (m.mkLButton && m.x > 215 && m.y < 95) {
+			PlaySound(TEXT(".\\music/bgm.wav"), NULL, SND_FILENAME | SND_ASYNC);
+			hard1();
+		}
+
+	}
+
+}
+
+
+
+
+
+
+//hard界面
+void hard2() {
+	char s[5];
+	time_t start_t, end_t;
+	double diff_t;
+	MOUSEMSG m;
+	IMAGE pichard2;
+	loadimage(&pichard2, _T(".\\img/hard2.jpg"));
+	IMAGE return2;
+	loadimage(&return2, _T(".\\img/return2.jpg"));
+	IMAGE return1;
+	loadimage(&return1, _T(".\\img/return.png"));
+	IMAGE imgsmile1;
+	loadimage(&imgsmile1, _T(".\\img/smile1.jpg"));
+	IMAGE imgsmile2;
+	loadimage(&imgsmile2, _T(".\\img/smile2.jpg"));
+	IMAGE block1;
+	loadimage(&block1, _T(".\\img/block1.jpg"));
+	bool isend = 1;
+	int count9 = 0;
+	int countelse = 0;
+	initgraph(780, 920);
+	setbkcolor(WHITE);
+	cleardevice();
+	settextcolor(BLACK);
+	outtextxy(100, 50, "扫雷3");
+	setbkmode(TRANSPARENT);
+	settextstyle(36, 0, _T("微软雅黑"));
+	putimage(0, 0, &pichard2);
+	putimage(365, 45, &imgsmile1);
+	putimage(20, 20, &return1);
+	setNumValueEmpty(numValue);
+	randomsetNumValue(numValue, 14, 15, 40);
+	time(&start_t);
+	for (int i = 0; i <= 15; i++) {
+		for (int j = 0; j <= 14; j++) {
+			setfillcolor(BLACK);
+			putimage(62 + i * 40, 142 + j * 40, &block1);
+
+		}
+	}
+	while (isend) {
+		onClick(hardValue);
+		count9 = 0;
+		countelse = 0;
+		for (int i = 0; i <= 15; i++) {
+			for (int j = 0; j <= 14; j++) {
+				if (numValue[j][i] == 9 && numCheck[j][i] == 0) {
+					count9++;
+				}
+			}
+		}
+		if (count9 != 0) {
+			isend = 0;
+
+			putimage(365, 45, &imgsmile2);
+			putimage(425, 45, &return2);
+			PlaySound(NULL, NULL, SND_FILENAME);
+			PlaySound(TEXT(".\\music/baozha.wav"), NULL, SND_FILENAME | SND_ASYNC);
+			while (1) {
+				m = GetMouseMsg();
+				if (m.mkLButton && m.x < 60 && m.y < 60) {
+					createindex();
+				}
+				if (m.mkLButton && m.x > 365 && m.y < 95) {
+					PlaySound(TEXT(".\\music/bgm.wav"), NULL, SND_FILENAME | SND_ASYNC);
+					hard2();
+				}
+
+			}
+		}
+		for (int i = 0; i <= 15; i++) {
+			for (int j = 0; j <= 14; j++) {
+				if (numValue[j][i] >= 0 && numValue[j][i] < 9 && numCheck[j][i] == 0) {
+					countelse++;
+				}
+			}
+		}
+		if (countelse >= 200) {
+			IMAGE lei1;
+			loadimage(&lei1, _T(".\\img/lei1.jpg"));
+			char s[5];
+			setfillcolor(WHITE);
+			isend = 0;
+			PlaySound(NULL, NULL, SND_FILENAME);
+			PlaySound(TEXT(".\\music/victory.wav"), NULL, SND_FILENAME | SND_ASYNC);
+			for (int j = 0; j <= 15; j++) {
+				for (int i = 0; i <= 14; i++) {
+
+					if (numValue[i][j] == 1 || numValue[i][j] == 4 || numValue[i][j] == 7) { settextcolor(BLUE); }
+					if (numValue[i][j] == 2 || numValue[i][j] == 5) { settextcolor(GREEN); }
+					if (numValue[i][j] == 3 || numValue[i][j] == 8) { settextcolor(RED); }
+
+					if (numValue[i][j] != 0 && numValue[i][j] != 9)
+					{
+						sprintf_s(s, "%d", numValue[i][j]);
+						outtextxy(72 + j * 40, 142 + i * 40, s);
+					}
+					if (numValue[i][j] == 9) {
+						putimage(62 + j * 40, 142 + i * 40, &lei1);
+					}
+				}
+			}
+		}
+	}
+	putimage(365, 215, &imgsmile1);
+	putimage(425, 45, &return2);
+	time(&end_t);
+	diff_t = difftime(end_t, start_t);
+	settextcolor(RED);
+	outtextxy(130, 460, "恭喜您完成游戏,用时:");
+	sprintf_s(s, "%d", int(diff_t));
+
+	outtextxy(200, 490, s);
+	outtextxy(240, 490, "S");
+	while (1) {
+		m = GetMouseMsg();
+		if (m.mkLButton && m.x < 60 && m.y < 60) {
+			createindex();
+		}
+		if (m.mkLButton && m.x > 365 && m.y < 95) {
+			PlaySound(TEXT(".\\music/bgm.wav"), NULL, SND_FILENAME | SND_ASYNC);
+			hard2();
+		}
+
+	}
+
+
+}
+//hell界面
+void hard3() {
+	char s[5];
+	time_t start_t, end_t;
+	double diff_t;
+	MOUSEMSG m;
+	IMAGE pichard3;
+	loadimage(&pichard3, _T(".\\img/hard3.jpg"));
+	IMAGE return2;
+	loadimage(&return2, _T(".\\img/return2.jpg"));
+	IMAGE return1;
+	loadimage(&return1, _T(".\\img/return.png"));
+	IMAGE imgsmile1;
+	loadimage(&imgsmile1, _T(".\\img/smile1.jpg"));
+	IMAGE imgsmile2;
+	loadimage(&imgsmile2, _T(".\\img/smile2.jpg"));
+	IMAGE block1;
+	loadimage(&block1, _T(".\\img/block1.jpg"));
+	bool isend = 1;
+	int count9 = 0;
+	int countelse = 0;
+	initgraph(1320, 920);
+	setbkcolor(WHITE);
+	cleardevice();
+	settextcolor(BLACK);
+	outtextxy(100, 50, "扫雷4");
+	setbkmode(TRANSPARENT);
+	settextstyle(36, 0, _T("微软雅黑"));
+	putimage(0, 0, &pichard3);
+	putimage(635, 45, &imgsmile1);
+	putimage(20, 20, &return1);
+	setNumValueEmpty(numValue);
+	randomsetNumValue(numValue, 14, 29, 99);
+	time(&start_t);
+	for (int i = 0; i <= 29; i++) {
+		for (int j = 0; j <= 14; j++) {
+			setfillcolor(BLACK);
+			putimage(62 + i * 40, 142 + j * 40, &block1);
+
+		}
+	}
+	while (isend) {
+		onClick(hardValue);
+		count9 = 0;
+		countelse = 0;
+		for (int i = 0; i <= 29; i++) {
+			for (int j = 0; j <= 14; j++) {
+				if (numValue[j][i] == 9 && numCheck[j][i] == 0) {
+					count9++;
+				}
+			}
+		}
+		if (count9 != 0) {
+			isend = 0;
+			putimage(635, 45, &imgsmile2);
+			putimage(695, 45, &return2);
+			PlaySound(NULL, NULL, SND_FILENAME);
+			PlaySound(TEXT(".\\music/baozha.wav"), NULL, SND_FILENAME | SND_ASYNC);
+			while (1) {
+				m = GetMouseMsg();
+				if (m.mkLButton && m.x < 60 && m.y < 60) {
+					createindex();
+				}
+				if (m.mkLButton && m.x > 635 && m.y < 95) {
+					PlaySound(TEXT(".\\music/bgm.wav"), NULL, SND_FILENAME | SND_ASYNC);
+
+					hard3();
+				}
+
+			}
+			break;
+		}
+		for (int i = 0; i <= 29; i++) {
+			for (int j = 0; j <= 14; j++) {
+				if (numValue[j][i] >= 0 && numValue[j][i] < 9 && numCheck[j][i] == 0) {
+					countelse++;
+				}
+			}
+		}
+		if (countelse >= 351) {
+			IMAGE lei1;
+			loadimage(&lei1, _T(".\\img/lei1.jpg"));
+			char s[5];
+			setfillcolor(WHITE);
+			isend = 0;
+			PlaySound(NULL, NULL, SND_FILENAME);
+			PlaySound(TEXT(".\\music/victory.wav"), NULL, SND_FILENAME | SND_ASYNC);
+			for (int i = 0; i <= 14; i++) {
+				for (int j = 0; j <= 29; j++) {
+
+					if (numValue[i][j] == 1 || numValue[i][j] == 4 || numValue[i][j] == 7) { settextcolor(BLUE); }
+					if (numValue[i][j] == 2 || numValue[i][j] == 5) { settextcolor(GREEN); }
+					if (numValue[i][j] == 3 || numValue[i][j] == 8) { settextcolor(RED); }
+
+					if (numValue[i][j] != 0 && numValue[i][j] != 9)
+					{
+						sprintf_s(s, "%d", numValue[i][j]);
+						outtextxy(72 + j * 40, 142 + i * 40, s);
+					}
+					if (numValue[i][j] == 9) {
+						putimage(62 + j * 40, 142 + i * 40, &lei1);
+					}
+
+				}
+
+			}
+		}
+	}
+	putimage(635, 215, &imgsmile1);
+	putimage(685, 215, &return2);
+	time(&end_t);
+	diff_t = difftime(end_t, start_t);
+	settextcolor(RED);
+	outtextxy(130, 460, "恭喜您完成游戏,用时:");
+	sprintf_s(s, "%d", int(diff_t));
+
+	outtextxy(200, 490, s);
+	outtextxy(260, 490, "S");
+	while (1) {
+		m = GetMouseMsg();
+		if (m.mkLButton && m.x < 60 && m.y < 60) {
+			createindex();
+		}
+		if (m.mkLButton && m.x > 635 && m.y < 95) {
+			PlaySound(TEXT(".\\music/bgm.wav"), NULL, SND_FILENAME | SND_ASYNC);
+			hard3();
+		}
+
+	}
+
+}
+
+
+
+//游戏效果流
+
+//点击事件 左键加右键
+void onClick(int hardValue) {
+	char s[5];
+	IMAGE flag1;
+	loadimage(&flag1, _T(".\\img/flag1.jpg"));
+	IMAGE block;
+	loadimage(&block, _T(".\\img/block.jpg"));
+	IMAGE block1;
+	loadimage(&block1, _T(".\\img/block1.jpg"));
+	MOUSEMSG m;
+	bool flag;
+	flag = 1;
+	FlushMouseMsgBuffer();
+	Sleep(1000);
+	if (hardValue == 0) {
+		while (flag) {
+			m = GetMouseMsg();
+			for (int i = 0; i <= 4 && flag; i++) {
+				for (int j = 0; j <= 6; j++) {
+					if (m.mkLButton && m.x < 60 && m.y < 60) {
+						createindex();
+					}
+					if (m.mkLButton && m.x > 140 + i * 40 && m.x < 180 + i * 40 && m.y>140 + j * 40 && m.y < 180 + j * 40) {
+						flag = 0;
+						nowx = i;
+						nowy = j;
+						checkempty(nowx, nowy, 6, 4);
+						break;
+					}
+					//这里还缺少标记事件
+					if (m.mkRButton && m.x > 140 + i * 40 && m.x < 180 + i * 40 && m.y>140 + j * 40 && m.y < 180 + j * 40 && flagCheck[j][i] == 0) {
+
+						putimage(142 + i * 40, 142 + j * 40, &flag1);
+						//setfillcolor(RED);
+						//fillrectangle(142 +i * 40, 142 + j * 40, 178 +i * 40, 178 + j * 40);
+						Sleep(100);
+						FlushMouseMsgBuffer();
+						flagCheck[j][i] = 1;
+						break;
+
+					}
+					if (m.mkRButton && m.x > 140 + i * 40 && m.x < 180 + i * 40 && m.y>140 + j * 40 && m.y < 180 + j * 40 && flagCheck[j][i] == 1) {
+						flagCheck[j][i] = 0;
+						putimage(142 + i * 40, 142 + j * 40, &flag1);
+
+						if (numCheck[j][i] == 1)
+						{
+							putimage(142 + i * 40, 142 + j * 40, &block1);
+						}
+
+						if (numCheck[j][i] == 0) {
+							if (numValue[j][i] == 1 || numValue[j][i] == 4 || numValue[j][i] == 7) { settextcolor(BLUE); }
+							if (numValue[j][i] == 2 || numValue[j][i] == 5) { settextcolor(GREEN); }
+							if (numValue[j][i] == 3 || numValue[j][i] == 8) { settextcolor(RED); }
+
+							if (numValue[j][i] != 0 && numValue[j][i] != 9)
+							{
+								putimage(142 + i * 40, 142 + j * 40, &block);
+								sprintf_s(s, "%d", numValue[j][i]);
+								outtextxy(152 + i * 40, 144 + j * 40, s);
+							}
+							if (numValue[j][i] == 0)
+							{
+								putimage(142 + i * 40, 142 + j * 40, &block);
+							}
+						}
+						Sleep(100);
+						FlushMouseMsgBuffer();
+
+						break;
+
+					}
+					//setfillcolor(RED);
+					//fillrectangle(142 +i * 40, 142 + j * 40, 178 +i * 40, 178 + j * 40);
+
+
+
+
+
+				}
+			}
+		}
+	}
+
+	if (hardValue == 1) {
+		while (flag) {
+			m = GetMouseMsg();
+			for (int i = 0; i <= 8 && flag; i++) {
+				for (int j = 0; j <= 8; j++) {
+					if (m.mkLButton && m.x < 60 && m.y < 60) {
+						createindex();
+					}
+					if (m.mkLButton && m.x > 60 + i * 40 && m.x < 100 + i * 40 && m.y>140 + j * 40 && m.y < 180 + j * 40) {
+						flag = 0;
+						nowx = i;
+						nowy = j;
+						checkempty(nowx, nowy, 8, 8);
+						break;
+					}
+
+
+					if (m.mkRButton && m.x > 60 + i * 40 && m.x < 100 + i * 40 && m.y>140 + j * 40 && m.y < 180 + j * 40 && flagCheck[j][i] == 0) {
+						flagCheck[j][i] = 1;
+						putimage(62 + i * 40, 142 + j * 40, &flag1);
+						//setfillcolor(RED);
+						//fillrectangle(62 + i * 40, 142 + j * 40, 98 + i * 40, 178 + j * 40);
+						Sleep(100);
+						FlushMouseMsgBuffer();
+						break;
+					}
+					if (m.mkRButton && m.x > 60 + i * 40 && m.x < 100 + i * 40 && m.y>140 + j * 40 && m.y < 180 + j * 40 && flagCheck[j][i] == 1) {
+						flagCheck[j][i] = 0;
+						putimage(62 + i * 40, 142 + j * 40, &flag1);
+
+						if (numCheck[j][i] == 1)
+						{
+							putimage(62 + i * 40, 142 + j * 40, &block1);
+						}
+
+						if (numCheck[j][i] == 0) {
+							if (numValue[j][i] == 1 || numValue[j][i] == 4 || numValue[j][i] == 7) { settextcolor(BLUE); }
+							if (numValue[j][i] == 2 || numValue[j][i] == 5) { settextcolor(GREEN); }
+							if (numValue[j][i] == 3 || numValue[j][i] == 8) { settextcolor(RED); }
+
+							if (numValue[j][i] != 0 && numValue[j][i] != 9)
+							{
+								putimage(62 + i * 40, 142 + j * 40, &block);
+								sprintf_s(s, "%d", numValue[j][i]);
+								outtextxy(72 + i * 40, 142 + j * 40, s);
+							}
+							if (numValue[j][i] == 0)
+							{
+								putimage(72 + i * 40, 142 + j * 40, &block);
+							}
+						}
+						Sleep(100);
+						FlushMouseMsgBuffer();
+
+						break;
+					}
+				}
+			}
+		}
+	}
+	if (hardValue == 2) {
+		while (flag) {
+			m = GetMouseMsg();
+			for (int i = 0; i <= 15 && flag; i++) {
+				for (int j = 0; j <= 14; j++) {
+					if (m.mkLButton && m.x < 60 && m.y < 60) {
+						createindex();
+					}
+					if (m.mkLButton && m.x > 60 + i * 40 && m.x < 100 + i * 40 && m.y>140 + j * 40 && m.y < 180 + j * 40) {
+						flag = 0;
+						nowx = i;
+						nowy = j;
+						checkempty(nowx, nowy, 14, 15);
+						break;
+					}
+
+					if (m.mkRButton && m.x > 60 + i * 40 && m.x < 100 + i * 40 && m.y>140 + j * 40 && m.y < 180 + j * 40 && flagCheck[j][i] == 0) {
+						flagCheck[j][i] = 1;
+						putimage(62 + i * 40, 142 + j * 40, &flag1);
+						//setfillcolor(RED);
+						//fillrectangle(62 + i * 40, 142 + j * 40, 98 + i * 40, 178 + j * 40);
+						Sleep(100);
+						FlushMouseMsgBuffer();
+						break;
+					}
+					if (m.mkRButton && m.x > 60 + i * 40 && m.x < 100 + i * 40 && m.y>140 + j * 40 && m.y < 180 + j * 40 && flagCheck[j][i] == 1) {
+						flagCheck[j][i] = 0;
+						putimage(62 + i * 40, 142 + j * 40, &flag1);
+
+						if (numCheck[j][i] == 1)
+						{
+							putimage(62 + i * 40, 142 + j * 40, &block1);
+						}
+
+						if (numCheck[j][i] == 0) {
+							if (numValue[j][i] == 1 || numValue[j][i] == 4 || numValue[j][i] == 7) { settextcolor(BLUE); }
+							if (numValue[j][i] == 2 || numValue[j][i] == 5) { settextcolor(GREEN); }
+							if (numValue[j][i] == 3 || numValue[j][i] == 8) { settextcolor(RED); }
+
+							if (numValue[j][i] != 0 && numValue[j][i] != 9)
+							{
+								putimage(62 + i * 40, 142 + j * 40, &block);
+								sprintf_s(s, "%d", numValue[j][i]);
+								outtextxy(72 + i * 40, 142 + j * 40, s);
+							}
+							if (numValue[j][i] == 0)
+							{
+								putimage(72 + i * 40, 142 + j * 40, &block);
+							}
+						}
+						Sleep(100);
+						FlushMouseMsgBuffer();
+
+						break;
+					}
+
+				}
+			}
+		}
+	}
+	if (hardValue == 3) {
+		while (flag) {
+			m = GetMouseMsg();
+			for (int i = 0; i <= 29 && flag; i++) {
+				for (int j = 0; j <= 14; j++) {
+					if (m.mkLButton && m.x < 60 && m.y < 60) {
+						createindex();
+					}
+					if (m.mkLButton && m.x > 60 + i * 40 && m.x < 100 + i * 40 && m.y>140 + j * 40 && m.y < 180 + j * 40) {
+						flag = 0;
+						nowx = i;
+						nowy = j;
+						checkempty(nowx, nowy, 14, 29);
+						break;
+					}
+
+					if (m.mkRButton && m.x > 60 + i * 40 && m.x < 100 + i * 40 && m.y>140 + j * 40 && m.y < 180 + j * 40 && flagCheck[j][i] == 0) {
+						flagCheck[j][i] = 1;
+						putimage(62 + i * 40, 142 + j * 40, &flag1);
+						//setfillcolor(RED);
+						//fillrectangle(62 + i * 40, 142 + j * 40, 98 + i * 40, 178 + j * 40);
+						Sleep(100);
+						FlushMouseMsgBuffer();
+						break;
+					}
+					if (m.mkRButton && m.x > 60 + i * 40 && m.x < 100 + i * 40 && m.y>140 + j * 40 && m.y < 180 + j * 40 && flagCheck[j][i] == 1) {
+						flagCheck[j][i] = 0;
+						putimage(62 + i * 40, 142 + j * 40, &flag1);
+
+						if (numCheck[j][i] == 1)
+						{
+							putimage(62 + i * 40, 142 + j * 40, &block1);
+						}
+
+						if (numCheck[j][i] == 0) {
+							if (numValue[j][i] == 1 || numValue[j][i] == 4 || numValue[j][i] == 7) { settextcolor(BLUE); }
+							if (numValue[j][i] == 2 || numValue[j][i] == 5) { settextcolor(GREEN); }
+							if (numValue[j][i] == 3 || numValue[j][i] == 8) { settextcolor(RED); }
+
+							if (numValue[j][i] != 0 && numValue[j][i] != 9)
+							{
+								putimage(62 + i * 40, 142 + j * 40, &block);
+								sprintf_s(s, "%d", numValue[j][i]);
+								outtextxy(72 + i * 40, 142 + j * 40, s);
+							}
+							if (numValue[j][i] == 0)
+							{
+								putimage(72 + i * 40, 142 + j * 40, &block);
+							}
+						}
+						Sleep(100);
+						FlushMouseMsgBuffer();
+
+						break;
+					}
+
+				}
+			}
+		}
+	}
+}
+
+//检测点击事件对应结果
+void checkempty(int nowx, int nowy, int sup1, int sup2) {
+	IMAGE lei1;
+	loadimage(&lei1, _T(".\\img/lei1.jpg"));
+	IMAGE block;
+	loadimage(&block, _T(".\\img/block.jpg"));
+
+	char s[5];
+	//如果是非雷，按下面执行
+	//0
+	if (numValue[nowy][nowx] == 0 && numCheck[nowy][nowx])
+	{
+		if (nowx >= 1 && nowy >= 1 && nowx <= sup2 - 1 && nowy <= sup1 - 1) {
+			numCheck[nowy][nowx] = 0;
+			setfillcolor(WHITE);
+			switch (hardValue)
+			{
+			case 0:
+				fillrectangle(142 + nowx * 40, 142 + nowy * 40, 178 + nowx * 40, 178 + nowy * 40);
+				putimage(142 + nowx * 40, 142 + nowy * 40, &block);
+				break;
+			case 1:
+				fillrectangle(62 + nowx * 40, 142 + nowy * 40, 98 + nowx * 40, 178 + nowy * 40);
+				putimage(62 + nowx * 40, 142 + nowy * 40, &block);
+				break;
+			case 2:
+				fillrectangle(62 + nowx * 40, 142 + nowy * 40, 98 + nowx * 40, 178 + nowy * 40);
+				putimage(62 + nowx * 40, 142 + nowy * 40, &block);
+				break;
+			case 3:
+				fillrectangle(62 + nowx * 40, 142 + nowy * 40, 98 + nowx * 40, 178 + nowy * 40);
+				putimage(62 + nowx * 40, 142 + nowy * 40, &block);
+				break;
+			default:
+				break;
+			}
+			checkempty(nowx - 1, nowy - 1, sup1, sup2);
+			checkempty(nowx - 1, nowy, sup1, sup2);
+
+			checkempty(nowx - 1, nowy + 1, sup1, sup2);
+
+			checkempty(nowx + 1, nowy - 1, sup1, sup2);
+			checkempty(nowx + 1, nowy, sup1, sup2);
+			checkempty(nowx + 1, nowy + 1, sup1, sup2);
+			checkempty(nowx, nowy - 1, sup1, sup2);
+			checkempty(nowx, nowy + 1, sup1, sup2);
+		}
+		if (nowx == 0 && nowy == 0) {
+			numCheck[nowy][nowx] = 0;
+			setfillcolor(WHITE);
+			switch (hardValue)
+			{
+			case 0:
+				fillrectangle(142 + nowx * 40, 142 + nowy * 40, 178 + nowx * 40, 178 + nowy * 40);
+				putimage(142 + nowx * 40, 142 + nowy * 40, &block);
+				break;
+			case 1:
+				fillrectangle(62 + nowx * 40, 142 + nowy * 40, 98 + nowx * 40, 178 + nowy * 40);
+				putimage(62 + nowx * 40, 142 + nowy * 40, &block);
+				break;
+			case 2:
+				fillrectangle(62 + nowx * 40, 142 + nowy * 40, 98 + nowx * 40, 178 + nowy * 40);
+				putimage(62 + nowx * 40, 142 + nowy * 40, &block);
+				break;
+			case 3:
+				fillrectangle(62 + nowx * 40, 142 + nowy * 40, 98 + nowx * 40, 178 + nowy * 40);
+				putimage(62 + nowx * 40, 142 + nowy * 40, &block);
+				break;
+			default:
+				break;
+			}
+			checkempty(1, 0, sup1, sup2);
+			checkempty(0, 1, sup1, sup2);
+			checkempty(1, 1, sup1, sup2);
+		}
+		if (nowx == sup2 && nowy == sup1) {
+			numCheck[nowy][nowx] = 0;
+			setfillcolor(WHITE);
+			switch (hardValue)
+			{
+			case 0:
+				fillrectangle(142 + nowx * 40, 142 + nowy * 40, 178 + nowx * 40, 178 + nowy * 40);
+				putimage(142 + nowx * 40, 142 + nowy * 40, &block);
+				break;
+			case 1:
+				fillrectangle(62 + nowx * 40, 142 + nowy * 40, 98 + nowx * 40, 178 + nowy * 40);
+				putimage(62 + nowx * 40, 142 + nowy * 40, &block);
+				break;
+			case 2:
+				fillrectangle(62 + nowx * 40, 142 + nowy * 40, 98 + nowx * 40, 178 + nowy * 40);
+				putimage(62 + nowx * 40, 142 + nowy * 40, &block);
+				break;
+			case 3:
+				fillrectangle(62 + nowx * 40, 142 + nowy * 40, 98 + nowx * 40, 178 + nowy * 40);
+				putimage(62 + nowx * 40, 142 + nowy * 40, &block);
+				break;
+			default:
+				break;
+			}
+			checkempty(sup2 - 1, sup1 - 1, sup1, sup2);
+			checkempty(sup2, sup1 - 1, sup1, sup2);
+
+			checkempty(sup2 - 1, sup1, sup1, sup2);
+		}
+		if (nowx == sup2 && nowy == 0) {
+			numCheck[nowy][nowx] = 0;
+			setfillcolor(WHITE);
+
+			switch (hardValue)
+			{
+			case 0:
+				fillrectangle(142 + nowx * 40, 142 + nowy * 40, 178 + nowx * 40, 178 + nowy * 40);
+				putimage(142 + nowx * 40, 142 + nowy * 40, &block);
+				break;
+			case 1:
+				fillrectangle(62 + nowx * 40, 142 + nowy * 40, 98 + nowx * 40, 178 + nowy * 40);
+				putimage(62 + nowx * 40, 142 + nowy * 40, &block);
+				break;
+			case 2:
+				fillrectangle(62 + nowx * 40, 142 + nowy * 40, 98 + nowx * 40, 178 + nowy * 40);
+				putimage(62 + nowx * 40, 142 + nowy * 40, &block);
+				break;
+			case 3:
+				fillrectangle(62 + nowx * 40, 142 + nowy * 40, 98 + nowx * 40, 178 + nowy * 40);
+				putimage(62 + nowx * 40, 142 + nowy * 40, &block);
+				break;
+			default:
+				break;
+			}
+			checkempty(sup2 - 1, 1, sup1, sup2);
+			checkempty(sup2, 1, sup1, sup2);
+
+			checkempty(sup2 - 1, 0, sup1, sup2);
+		}
+		if (nowx == 0 && nowy == sup1) {
+			numCheck[nowy][nowx] = 0;
+			setfillcolor(WHITE);
+			switch (hardValue)
+			{
+			case 0:
+				fillrectangle(142 + nowx * 40, 142 + nowy * 40, 178 + nowx * 40, 178 + nowy * 40);
+				putimage(142 + nowx * 40, 142 + nowy * 40, &block);
+				break;
+			case 1:
+				fillrectangle(62 + nowx * 40, 142 + nowy * 40, 98 + nowx * 40, 178 + nowy * 40);
+				putimage(62 + nowx * 40, 142 + nowy * 40, &block);
+				break;
+			case 2:
+				fillrectangle(62 + nowx * 40, 142 + nowy * 40, 98 + nowx * 40, 178 + nowy * 40);
+				putimage(62 + nowx * 40, 142 + nowy * 40, &block);
+				break;
+			case 3:
+				fillrectangle(62 + nowx * 40, 142 + nowy * 40, 98 + nowx * 40, 178 + nowy * 40);
+				putimage(62 + nowx * 40, 142 + nowy * 40, &block);
+				break;
+			default:
+				break;
+			}
+			checkempty(0, sup1 - 1, sup1, sup2);
+			checkempty(1, sup1 - 1, sup1, sup2);
+
+			checkempty(1, sup1, sup1, sup2);
+		}
+		if (nowx == 0 && nowy >= 1 && nowy <= sup1 - 1) {
+			numCheck[nowy][nowx] = 0;
+			setfillcolor(WHITE);
+			switch (hardValue)
+			{
+			case 0:
+				fillrectangle(142 + nowx * 40, 142 + nowy * 40, 178 + nowx * 40, 178 + nowy * 40);
+				putimage(142 + nowx * 40, 142 + nowy * 40, &block);
+				break;
+			case 1:
+				fillrectangle(62 + nowx * 40, 142 + nowy * 40, 98 + nowx * 40, 178 + nowy * 40);
+				putimage(62 + nowx * 40, 142 + nowy * 40, &block);
+				break;
+			case 2:
+				fillrectangle(62 + nowx * 40, 142 + nowy * 40, 98 + nowx * 40, 178 + nowy * 40);
+				putimage(62 + nowx * 40, 142 + nowy * 40, &block);
+				break;
+			case 3:
+				fillrectangle(62 + nowx * 40, 142 + nowy * 40, 98 + nowx * 40, 178 + nowy * 40);
+				putimage(62 + nowx * 40, 142 + nowy * 40, &block);
+				break;
+			default:
+				break;
+			}
+			checkempty(nowx, nowy - 1, sup1, sup2);
+			checkempty(nowx, nowy + 1, sup1, sup2);
+			checkempty(nowx + 1, nowy + 1, sup1, sup2);
+			checkempty(nowx + 1, nowy - 1, sup1, sup2);
+			checkempty(nowx + 1, nowy, sup1, sup2);
+		}
+		if (nowx == sup2 && nowy >= 1 && nowy <= sup1 - 1) {
+			numCheck[nowy][nowx] = 0;
+			setfillcolor(WHITE);
+			switch (hardValue)
+			{
+			case 0:
+				fillrectangle(142 + nowx * 40, 142 + nowy * 40, 178 + nowx * 40, 178 + nowy * 40);
+				putimage(142 + nowx * 40, 142 + nowy * 40, &block);
+				break;
+			case 1:
+				fillrectangle(62 + nowx * 40, 142 + nowy * 40, 98 + nowx * 40, 178 + nowy * 40);
+				putimage(62 + nowx * 40, 142 + nowy * 40, &block);
+				break;
+			case 2:
+				fillrectangle(62 + nowx * 40, 142 + nowy * 40, 98 + nowx * 40, 178 + nowy * 40);
+				putimage(62 + nowx * 40, 142 + nowy * 40, &block);
+				break;
+			case 3:
+				fillrectangle(62 + nowx * 40, 142 + nowy * 40, 98 + nowx * 40, 178 + nowy * 40);
+				putimage(62 + nowx * 40, 142 + nowy * 40, &block);
+				break;
+			default:
+				break;
+			}
+			checkempty(nowx, nowy - 1, sup1, sup2);
+			checkempty(nowx, nowy + 1, sup1, sup2);
+			checkempty(nowx - 1, nowy + 1, sup1, sup2);
+			checkempty(nowx - 1, nowy - 1, sup1, sup2);
+			checkempty(nowx - 1, nowy, sup1, sup2);
+		}
+		if (nowy == sup1 && nowx >= 1 && nowx <= sup2 - 1) {
+			numCheck[nowy][nowx] = 0;
+			setfillcolor(WHITE);
+			switch (hardValue)
+			{
+			case 0:
+				fillrectangle(142 + nowx * 40, 142 + nowy * 40, 178 + nowx * 40, 178 + nowy * 40);
+				putimage(142 + nowx * 40, 142 + nowy * 40, &block);
+				break;
+			case 1:
+				fillrectangle(62 + nowx * 40, 142 + nowy * 40, 98 + nowx * 40, 178 + nowy * 40);
+				putimage(62 + nowx * 40, 142 + nowy * 40, &block);
+				break;
+			case 2:
+				fillrectangle(62 + nowx * 40, 142 + nowy * 40, 98 + nowx * 40, 178 + nowy * 40);
+				putimage(62 + nowx * 40, 142 + nowy * 40, &block);
+				break;
+			case 3:
+				fillrectangle(62 + nowx * 40, 142 + nowy * 40, 98 + nowx * 40, 178 + nowy * 40);
+				putimage(62 + nowx * 40, 142 + nowy * 40, &block);
+				break;
+			default:
+				break;
+			}
+			checkempty(nowx, nowy - 1, sup1, sup2);
+			checkempty(nowx - 1, nowy, sup1, sup2);
+			checkempty(nowx - 1, nowy + 1, sup1, sup2);
+			checkempty(nowx + 1, nowy - 1, sup1, sup2);
+			checkempty(nowx + 1, nowy, sup1, sup2);
+		}
+		if (nowy == 0 && nowx >= 1 && nowx <= sup2 - 1) {
+			numCheck[nowy][nowx] = 0;
+			setfillcolor(WHITE);
+			switch (hardValue)
+			{
+			case 0:
+				fillrectangle(142 + nowx * 40, 142 + nowy * 40, 178 + nowx * 40, 178 + nowy * 40);
+				putimage(142 + nowx * 40, 142 + nowy * 40, &block);
+				break;
+			case 1:
+				fillrectangle(62 + nowx * 40, 142 + nowy * 40, 98 + nowx * 40, 178 + nowy * 40);
+				putimage(62 + nowx * 40, 142 + nowy * 40, &block);
+				break;
+			case 2:
+				fillrectangle(62 + nowx * 40, 142 + nowy * 40, 98 + nowx * 40, 178 + nowy * 40);
+				putimage(62 + nowx * 40, 142 + nowy * 40, &block);
+				break;
+			case 3:
+				fillrectangle(62 + nowx * 40, 142 + nowy * 40, 98 + nowx * 40, 178 + nowy * 40);
+				putimage(62 + nowx * 40, 142 + nowy * 40, &block);
+				break;
+			default:
+				break;
+			}
+			checkempty(nowx - 1, nowy, sup1, sup2);
+			checkempty(nowx + 1, nowy, sup1, sup2);
+			checkempty(nowx - 1, nowy + 1, sup1, sup2);
+			checkempty(nowx, nowy + 1, sup1, sup2);
+			checkempty(nowx + 1, nowy + 1, sup1, sup2);
+		}
+	}
+	//1-8
+	if (numValue[nowy][nowx] > 0 && numValue[nowy][nowx] < 9 && numCheck[nowy][nowx]) {
+		numCheck[nowy][nowx] = 0;
+		setfillcolor(WHITE);
+		switch (hardValue)
+		{
+		case 0:
+			fillrectangle(142 + nowx * 40, 142 + nowy * 40, 178 + nowx * 40, 178 + nowy * 40);
+			putimage(142 + nowx * 40, 142 + nowy * 40, &block);
+			if (numValue[nowy][nowx] == 1 || numValue[nowy][nowx] == 4 || numValue[nowy][nowx] == 7) { settextcolor(BLUE); }
+			if (numValue[nowy][nowx] == 2 || numValue[nowy][nowx] == 5) { settextcolor(GREEN); }
+			if (numValue[nowy][nowx] == 3 || numValue[nowy][nowx] == 8) { settextcolor(RED); }
+
+
+			sprintf_s(s, "%d", numValue[nowy][nowx]);
+			outtextxy(152 + nowx * 40, 144 + nowy * 40, s);
+			settextcolor(BLACK);
+			break;
+		case 1:
+			fillrectangle(62 + nowx * 40, 142 + nowy * 40, 98 + nowx * 40, 178 + nowy * 40);
+			putimage(62 + nowx * 40, 142 + nowy * 40, &block);
+			if (numValue[nowy][nowx] == 1 || numValue[nowy][nowx] == 4 || numValue[nowy][nowx] == 7) { settextcolor(BLUE); }
+			if (numValue[nowy][nowx] == 2 || numValue[nowy][nowx] == 5) { settextcolor(GREEN); }
+			if (numValue[nowy][nowx] == 3 || numValue[nowy][nowx] == 8) { settextcolor(RED); }
+			sprintf_s(s, "%d", numValue[nowy][nowx]);
+			outtextxy(72 + nowx * 40, 142 + nowy * 40, s);
+			settextcolor(BLACK);
+			break;
+		case 2:
+			fillrectangle(62 + nowx * 40, 142 + nowy * 40, 98 + nowx * 40, 178 + nowy * 40);
+			putimage(62 + nowx * 40, 142 + nowy * 40, &block);
+			if (numValue[nowy][nowx] == 1 || numValue[nowy][nowx] == 4 || numValue[nowy][nowx] == 7) { settextcolor(BLUE); }
+			if (numValue[nowy][nowx] == 2 || numValue[nowy][nowx] == 5) { settextcolor(GREEN); }
+			if (numValue[nowy][nowx] == 3 || numValue[nowy][nowx] == 8) { settextcolor(RED); }
+
+			sprintf_s(s, "%d", numValue[nowy][nowx]);
+			outtextxy(72 + nowx * 40, 142 + nowy * 40, s);
+			settextcolor(BLACK);
+			break;
+		case 3:
+			fillrectangle(62 + nowx * 40, 142 + nowy * 40, 98 + nowx * 40, 178 + nowy * 40);
+			putimage(62 + nowx * 40, 142 + nowy * 40, &block);
+			if (numValue[nowy][nowx] == 1 || numValue[nowy][nowx] == 4 || numValue[nowy][nowx] == 7) { settextcolor(BLUE); }
+			if (numValue[nowy][nowx] == 2 || numValue[nowy][nowx] == 5) { settextcolor(GREEN); }
+			if (numValue[nowy][nowx] == 3 || numValue[nowy][nowx] == 8) { settextcolor(RED); }
+
+			sprintf_s(s, "%d", numValue[nowy][nowx]);
+			outtextxy(72 + nowx * 40, 142 + nowy * 40, s);
+			settextcolor(BLACK);
+			break;
+		default:
+			break;
+		}
+
+
+
+	}
+	//如果是雷，按执行下面
+	if (numValue[nowy][nowx] == 9) {
+		numCheck[nowy][nowx] = 0;
+		for (int i = 0; i <= sup1; i++) {
+			for (int j = 0; j <= sup2; j++) {
+				if (numValue[i][j] == 1 || numValue[i][j] == 4 || numValue[i][j] == 7) { settextcolor(BLUE); }
+				if (numValue[i][j] == 2 || numValue[i][j] == 5) { settextcolor(GREEN); }
+				if (numValue[i][j] == 3 || numValue[i][j] == 8) { settextcolor(RED); }
+				switch (hardValue)
+				{
+				case 0:
+					//fillrectangle(142 + nowx * 40, 142 + nowy * 40, 178 + nowx * 40, 178 + nowy * 40);
+					sprintf_s(s, "%d", numValue[i][j]);
+					outtextxy(152 + j * 40, 144 + i * 40, s);
+					if (numValue[i][j] == 0) {
+						putimage(142 + j * 40, 142 + i * 40, &block);
+					}
+					if (numValue[i][j] == 9) {
+						putimage(142 + j * 40, 142 + i * 40, &lei1);
+
+					}
+					break;
+				case 1:
+					//fillrectangle(62 + nowx * 40, 142 + nowy * 40, 98 + nowx * 40, 178 + nowy * 40);
+					sprintf_s(s, "%d", numValue[i][j]);
+					outtextxy(72 + j * 40, 142 + i * 40, s);
+					if (numValue[i][j] == 9) {
+						putimage(62 + j * 40, 142 + i * 40, &lei1);
+
+					}
+					if (numValue[i][j] == 0) {
+						putimage(62 + j * 40, 142 + i * 40, &block);
+					}
+
+					break;
+				case 2:
+					//fillrectangle(62 + nowx * 40, 142 + nowy * 40, 98 + nowx * 40, 178 + nowy * 40);
+					sprintf_s(s, "%d", numValue[i][j]);
+					outtextxy(72 + j * 40, 142 + i * 40, s);
+					if (numValue[i][j] == 9) {
+						putimage(62 + j * 40, 142 + i * 40, &lei1);
+
+					}
+					if (numValue[i][j] == 0) {
+						putimage(62 + j * 40, 142 + i * 40, &block);
+					}
+					break;
+				case 3:
+					//fillrectangle(62 + nowx * 40, 142 + nowy * 40, 98 + nowx * 40, 178 + nowy * 40);
+					sprintf_s(s, "%d", numValue[i][j]);
+					outtextxy(72 + j * 40, 142 + i * 40, s);
+					if (numValue[i][j] == 9) {
+						putimage(62 + j * 40, 142 + i * 40, &lei1);
+
+					}
+					if (numValue[i][j] == 0) {
+						putimage(62 + j * 40, 142 + i * 40, &block);
+					}
+					break;
+				default:
+					break;
+				}
+
+
+			}
+		}
+
+	}
+
+
+}
+
+
+
+
+
+
+//下面是数据实现部分
+
+//清空组
+void setNumValueEmpty(int(*a)[50]) {
+	for (int i = 0; i <= 49; i++) {
+
+		for (int j = 0; j <= 49; j++) {
+			a[i][j] = 0;
+		}
+	}
+	for (int i = 0; i <= 49; i++) {
+
+		for (int j = 0; j <= 49; j++) {
+			numCheck[i][j] = 1;
+		}
+	}
+	for (int i = 0; i <= 49; i++) {
+
+		for (int j = 0; j <= 49; j++) {
+			flagCheck[i][j] = 0;
+		}
+	}
+
+}
+
+//初始化数组
+void randomsetNumValue(int(*a)[50], int sup1, int sup2, int num) {
+	int count = 0, x, y;
+	while (count < num) {
+		x = rand() % (sup1 + 1);
+		y = rand() % (sup2 + 1);
+		if (a[x][y] != 9) {
+			a[x][y] = 9;
+			count++;
+		}
+	}
+	for (int i = 1; i <= sup1 - 1; i++) {
+		for (int j = 1; j <= sup2 - 1; j++) {
+			count = 0;
+			if (a[i][j] != 9) {
+				for (int k = 0; k <= 2; k++) {
+					if (a[i - 1][j - 1 + k] == 9) {
+						count++;
+					}
+				}
+				for (int k = 0; k <= 2; k++) {
+					if (a[i + 1][j - 1 + k] == 9) {
+						count++;
+					}
+				}
+				for (int k = 0; k <= 2; k = k + 2) {
+					if (a[i][j - 1 + k] == 9) {
+						count++;
+					}
+				}
+				a[i][j] = count;
+			}
+
+		}
+
+	}
+	for (int i = 1; i <= sup2 - 1; i++) {
+		count = 0;
+		if (a[0][i] != 9) {
+			for (int j = 0; j <= 2; j++) {
+				if (a[1][i - 1 + j] == 9) {
+					count++;
+				}
+
+			}
+			for (int j = 0; j <= 2; j = j + 2) {
+
+				if (a[0][i - 1 + j] == 9) {
+					count++;
+				}
+			}
+			a[0][i] = count;
+		}
+	}
+	for (int i = 1; i <= sup2 - 1; i++) {
+		count = 0;
+		if (a[sup1][i] != 9) {
+			for (int j = 0; j <= 2; j++) {
+				if (a[sup1 - 1][i - 1 + j] == 9) {
+					count++;
+				}
+
+			}
+			for (int j = 0; j <= 2; j = j + 2) {
+				if (a[sup1][i - 1 + j] == 9) {
+					count++;
+				}
+			}
+			a[sup1][i] = count;
+		}
+
+	}
+	for (int i = 1; i <= sup1 - 1; i++) {
+		count = 0;
+		if (a[i][0] != 9) {
+			for (int j = 0; j <= 2; j++) {
+				if (a[i - 1 + j][1] == 9) {
+					count++;
+				}
+
+			}
+			for (int j = 0; j <= 2; j = j + 2) {
+				if (a[i - 1 + j][0] == 9) {
+					count++;
+				}
+			}
+			a[i][0] = count;
+		}
+
+	}
+	for (int i = 1; i <= sup1 - 1; i++) {
+		count = 0;
+		if (a[i][sup2] != 9) {
+			for (int j = 0; j <= 2; j++) {
+				if (a[i - 1 + j][sup2 - 1] == 9) {
+					count++;
+				}
+
+			}
+			for (int j = 0; j <= 2; j = j + 2) {
+				if (a[i - 1 + j][sup2] == 9) {
+					count++;
+				}
+			}
+			a[i][sup2] = count;
+		}
+
+	}
+	if (a[0][0] != 9) {
+		count = 0;
+		if (a[0][1] == 9) {
+			count++;
+		}
+		if (a[1][0] == 9) {
+			count++;
+		}
+		if (a[1][1] == 9) {
+			count++;
+		}
+		a[0][0] = count;
+	}
+	if (a[sup1][0] != 9) {
+		count = 0;
+		if (a[sup1 - 1][0] == 9) {
+			count++;
+		}
+		if (a[sup1 - 1][1] == 9) {
+			count++;
+		}
+		if (a[sup1][1] == 9) {
+			count++;
+		}
+		a[sup1][0] = count;
+	}
+	if (a[0][sup2] != 9) {
+		count = 0;
+		if (a[0][sup2 - 1] == 9) {
+			count++;
+		}
+		if (a[1][sup2 - 1] == 9) {
+			count++;
+		}
+		if (a[1][sup2] == 9) {
+			count++;
+		}
+		a[0][sup2] = count;
+	}
+	if (a[sup1][sup2] != 9) {
+		count = 0;
+		if (a[sup1 - 1][sup2 - 1] == 9) {
+			count++;
+		}
+		if (a[sup1][sup2 - 1] == 9) {
+			count++;
+		}
+		if (a[sup1 - 1][sup2] == 9) {
+			count++;
+		}
+		a[sup1][sup2] = count;
+	}
+
+}
