@@ -748,7 +748,7 @@ void onClick(int hardValue) {
 					if (m.mkLButton && m.x < 60 && m.y < 60) {
 						createindex();
 					}
-					if (m.mkLButton && m.x > 140 + i * 40 && m.x < 180 + i * 40 && m.y>140 + j * 40 && m.y < 180 + j * 40) {
+					if (m.mkLButton && m.x > 140 + i * 40 && m.x < 180 + i * 40 && m.y>140 + j * 40 && m.y < 180 + j * 40&&flagCheck[j][i]!=1) {
 						flag = 0;
 						nowx = i;
 						nowy = j;
@@ -756,7 +756,7 @@ void onClick(int hardValue) {
 						break;
 					}
 					//这里还缺少标记事件
-					if (m.mkRButton && m.x > 140 + i * 40 && m.x < 180 + i * 40 && m.y>140 + j * 40 && m.y < 180 + j * 40 && flagCheck[j][i] == 0) {
+					if (m.mkRButton && m.x > 140 + i * 40 && m.x < 180 + i * 40 && m.y>140 + j * 40 && m.y < 180 + j * 40 && numCheck[j][i] == 1&& flagCheck[j][i] == 0) {
 
 						putimage(142 + i * 40, 142 + j * 40, &flag1);
 						//setfillcolor(RED);
@@ -767,7 +767,7 @@ void onClick(int hardValue) {
 						break;
 
 					}
-					if (m.mkRButton && m.x > 140 + i * 40 && m.x < 180 + i * 40 && m.y>140 + j * 40 && m.y < 180 + j * 40 && flagCheck[j][i] == 1) {
+					if (m.mkRButton && m.x > 140 + i * 40 && m.x < 180 + i * 40 && m.y>140 + j * 40 && m.y < 180 + j * 40 &&numCheck[j][i]==1&& flagCheck[j][i] == 1) {
 						flagCheck[j][i] = 0;
 						putimage(142 + i * 40, 142 + j * 40, &flag1);
 
@@ -818,7 +818,7 @@ void onClick(int hardValue) {
 					if (m.mkLButton && m.x < 60 && m.y < 60) {
 						createindex();
 					}
-					if (m.mkLButton && m.x > 60 + i * 40 && m.x < 100 + i * 40 && m.y>140 + j * 40 && m.y < 180 + j * 40) {
+					if (m.mkLButton && m.x > 60 + i * 40 && m.x < 100 + i * 40 && m.y>140 + j * 40 && m.y < 180 + j * 40 && flagCheck[j][i] != 1) {
 						flag = 0;
 						nowx = i;
 						nowy = j;
@@ -827,7 +827,7 @@ void onClick(int hardValue) {
 					}
 
 
-					if (m.mkRButton && m.x > 60 + i * 40 && m.x < 100 + i * 40 && m.y>140 + j * 40 && m.y < 180 + j * 40 && flagCheck[j][i] == 0) {
+					if (m.mkRButton && m.x > 60 + i * 40 && m.x < 100 + i * 40 && m.y>140 + j * 40 && m.y < 180 + j * 40 && numCheck[j][i] == 1 && flagCheck[j][i] == 0) {
 						flagCheck[j][i] = 1;
 						putimage(62 + i * 40, 142 + j * 40, &flag1);
 						//setfillcolor(RED);
@@ -836,7 +836,7 @@ void onClick(int hardValue) {
 						FlushMouseMsgBuffer();
 						break;
 					}
-					if (m.mkRButton && m.x > 60 + i * 40 && m.x < 100 + i * 40 && m.y>140 + j * 40 && m.y < 180 + j * 40 && flagCheck[j][i] == 1) {
+					if (m.mkRButton && m.x > 60 + i * 40 && m.x < 100 + i * 40 && m.y>140 + j * 40 && m.y < 180 + j * 40 && numCheck[j][i] == 1 && flagCheck[j][i] == 1) {
 						flagCheck[j][i] = 0;
 						putimage(62 + i * 40, 142 + j * 40, &flag1);
 
@@ -878,7 +878,7 @@ void onClick(int hardValue) {
 					if (m.mkLButton && m.x < 60 && m.y < 60) {
 						createindex();
 					}
-					if (m.mkLButton && m.x > 60 + i * 40 && m.x < 100 + i * 40 && m.y>140 + j * 40 && m.y < 180 + j * 40) {
+					if (m.mkLButton && m.x > 60 + i * 40 && m.x < 100 + i * 40 && m.y>140 + j * 40 && m.y < 180 + j * 40 && flagCheck[j][i] != 1) {
 						flag = 0;
 						nowx = i;
 						nowy = j;
@@ -886,7 +886,7 @@ void onClick(int hardValue) {
 						break;
 					}
 
-					if (m.mkRButton && m.x > 60 + i * 40 && m.x < 100 + i * 40 && m.y>140 + j * 40 && m.y < 180 + j * 40 && flagCheck[j][i] == 0) {
+					if (m.mkRButton && m.x > 60 + i * 40 && m.x < 100 + i * 40 && m.y>140 + j * 40 && m.y < 180 + j * 40 && numCheck[j][i] == 1 && flagCheck[j][i] == 0) {
 						flagCheck[j][i] = 1;
 						putimage(62 + i * 40, 142 + j * 40, &flag1);
 						//setfillcolor(RED);
@@ -895,7 +895,7 @@ void onClick(int hardValue) {
 						FlushMouseMsgBuffer();
 						break;
 					}
-					if (m.mkRButton && m.x > 60 + i * 40 && m.x < 100 + i * 40 && m.y>140 + j * 40 && m.y < 180 + j * 40 && flagCheck[j][i] == 1) {
+					if (m.mkRButton && m.x > 60 + i * 40 && m.x < 100 + i * 40 && m.y>140 + j * 40 && m.y < 180 + j * 40 && numCheck[j][i] == 1 && flagCheck[j][i] == 1) {
 						flagCheck[j][i] = 0;
 						putimage(62 + i * 40, 142 + j * 40, &flag1);
 
@@ -938,7 +938,7 @@ void onClick(int hardValue) {
 					if (m.mkLButton && m.x < 60 && m.y < 60) {
 						createindex();
 					}
-					if (m.mkLButton && m.x > 60 + i * 40 && m.x < 100 + i * 40 && m.y>140 + j * 40 && m.y < 180 + j * 40) {
+					if (m.mkLButton && m.x > 60 + i * 40 && m.x < 100 + i * 40 && m.y>140 + j * 40 && m.y < 180 + j * 40 && flagCheck[j][i] != 1) {
 						flag = 0;
 						nowx = i;
 						nowy = j;
@@ -946,7 +946,7 @@ void onClick(int hardValue) {
 						break;
 					}
 
-					if (m.mkRButton && m.x > 60 + i * 40 && m.x < 100 + i * 40 && m.y>140 + j * 40 && m.y < 180 + j * 40 && flagCheck[j][i] == 0) {
+					if (m.mkRButton && m.x > 60 + i * 40 && m.x < 100 + i * 40 && m.y>140 + j * 40 && m.y < 180 + j * 40 && numCheck[j][i] == 1 && flagCheck[j][i] == 0) {
 						flagCheck[j][i] = 1;
 						putimage(62 + i * 40, 142 + j * 40, &flag1);
 						//setfillcolor(RED);
@@ -955,7 +955,7 @@ void onClick(int hardValue) {
 						FlushMouseMsgBuffer();
 						break;
 					}
-					if (m.mkRButton && m.x > 60 + i * 40 && m.x < 100 + i * 40 && m.y>140 + j * 40 && m.y < 180 + j * 40 && flagCheck[j][i] == 1) {
+					if (m.mkRButton && m.x > 60 + i * 40 && m.x < 100 + i * 40 && m.y>140 + j * 40 && m.y < 180 + j * 40 && numCheck[j][i] == 1 && flagCheck[j][i] == 1) {
 						flagCheck[j][i] = 0;
 						putimage(62 + i * 40, 142 + j * 40, &flag1);
 
